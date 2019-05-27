@@ -70,7 +70,7 @@ class _zug_item():
             item_end = utils.get_item_nummer(end,self)
         except LookupError:
             item_end = -1
-    
+        print(item_start,item_end)    
         if self._sched[item_start]['abfahrt'] != None:
             self._sched[item_start]['abfahrt'] += shift
             self._print_station(self._sched[item_start])
@@ -397,7 +397,7 @@ class schedule():
         data = {}
         for i in self._zug_lst:
             out = {'zug':{},'fpl':None}
-            for j in ['nummer', 'gattung','vref','folgezug','folgt']:
+            for j in ['nummer', 'gattung','vref','folgezug','folgt','start','ende']:
                 out['zug'][j] = self._zug_lst[i]._attr[j]
             out['fpl'] = self._zug_lst[i]._sched
             data[i] = out
@@ -411,12 +411,20 @@ class schedule():
 
         for i in data:
             self.add(i)
-            for j in ['nummer', 'gattung','vref','folgezug','folgt']:
-                self._zug_lst[i]._attr[j] = data[i]['zug'][j]
+            for j in ['nummer', 'gattung','vref','folgezug','folgt','start','ende']:
+                try:
+                    self._zug_lst[i]._attr[j] = data[i]['zug'][j]
+                except KeyError:
+                    self._zug_lst[i]._attr[j] = None
+            for j in ['start','ende']:
+                try:
+                    self._zug_lst[i]._attr[j] = datetime.datetime.fromisoformat(self._zug_lst[i]._attr[j])
+                except (AttributeError,TypeError,KeyError):
+                    pass
 
             self._zug_lst[i]._sched = data[i]['fpl'] 
             for station in self._zug_lst[i]._sched:
-                for time in ['ankunft','abfahrt','start','ende']:
+                for time in ['ankunft','abfahrt']:
                     try:
                         station[time] = datetime.datetime.fromisoformat(station[time])
                     except (AttributeError,TypeError,KeyError):
