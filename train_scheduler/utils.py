@@ -22,16 +22,18 @@ def time_parser(time):
 def get_item_nummer(name,fpl):
     if name == None or name == '':
         raise LookupError('Keine Station gegeben')
-    station_lst = [getattr(i,'station') for i in fpl]
-    station=[i for i in station_lst if start in i]
+    station_lst = [i['name'] for i in fpl._sched]
+    station=[i for i in station_lst if name in i]
     if len(station) == 0:
         print('Station nicht gefunden')
         raise LookupError('Station nicht gefunden')
+        return
     if len(station) > 1:
         print('Station nicht eindeutig')
         raise LookupError('Station nicht gefunden')
+        return
     else:
-        return next(i for i,x in enumerate(self) if x.station==start)
+        return next(i for i,x in enumerate(fpl._sched) if x['name']==station[0])
 
 
 def name_completion(name,station_lst):
