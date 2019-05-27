@@ -1,9 +1,9 @@
 import pickle
 import json
 import datetime
-import train_scheduler.utils
+import train_scheduler.utils as utils
 
-_attr = ['km','name', 'gleise','gleis_rauf','gleis_runter','vmax','halt_fuer','art','steigung','aufenthalt']
+_attr = ['km','name', 'gleise','gleis_rauf','gleis_runter','vmax','halt_fuer','art','ladestellen','steigung','aufenthalt']
 
 class _station_item():
     def __init__(self, name, km, **kwargs):
@@ -76,7 +76,7 @@ class route():
         
        
     def reversed(self):
-        out = strecke()
+        out = route()
         out._stations=self._stations[::-1]
         return out
 
@@ -124,8 +124,8 @@ class route():
             try:
                 time = int(round(getattr(station_item,'aufenthalt').total_seconds()/60))
                 print("{:3d} {}".format(time, 'min'), end=" ")
-            except TypeError:
-                pass
+            except (TypeError,AttributeError):
+                print(" ",end=" ")
             print(' ')
 
     def ed(self, name_in, **kwargs):
@@ -143,9 +143,14 @@ class route():
             except KeyError:
                 pass
         try:
-            setattr(self._stations[pos_in_list], _attr[-1], datetime.timedelta(minutes=kwargs['aufenthalt']))
-            print("{}[{}] = {}".format(name, 'aufenthalt', kwargs['aufenthalt']))
-        except KeyError:
+            if kwargs['aufenthalt'] != None:
+                setattr(self._stations[pos_in_list], _attr[-1], datetime.timedelta(minutes=kwargs['aufenthalt']))
+                print("{}[{}] = {}".format(name, 'aufenthalt', kwargs['aufenthalt']))
+            else:
+                setattr(self._stations[pos_in_list], _attr[-1], None)
+                print("{} - {}: {} ".format(name, 'aufenthalt', kwargs['aufenthalt']))
+                
+        except (KeyError,TypeError):
             pass
 
     def station(self, arg):
@@ -191,7 +196,7 @@ class route():
             # handle aufenthalt datetime
             try:
                 station_dict['aufenthalt'] = int(getattr(item,'aufenthalt').total_seconds())
-            except KeyError:
+            except (KeyError,AttributeError):
                 station_dict['aufenthalt'] = None
             station_as_dict_lst.append(station_dict)
         
@@ -212,7 +217,7 @@ class route():
             # handle aufenthalt datetime
                 try:
                     setattr(station_item,'aufenthalt',datetime.timedelta(seconds=item['aufenthalt']))
-                except (KeyError, TypeError):
-                    setattr(station_item,'aufenthalt',datetime.timedelta(seconds=0))
+                except (KeyError, TypeError,AttributeError):
+                    setattr(station_item,'aufenthalt',None)
             self._stations.append(station_item)
         
